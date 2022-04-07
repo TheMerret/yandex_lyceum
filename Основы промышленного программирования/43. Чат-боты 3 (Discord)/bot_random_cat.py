@@ -1,11 +1,10 @@
-import logging
 import asyncio
+import logging
 from concurrent.futures import ThreadPoolExecutor
-from io import BytesIO
 
 import discord
-from discord import Message, File
 import requests
+from discord import Message
 
 from bot_token import TOKEN
 
