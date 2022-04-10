@@ -3,7 +3,7 @@ import logging
 
 from telegram import Update
 from telegram.ext import (Updater, MessageHandler, Filters, CallbackContext, CommandHandler,
-                          ConversationHandler, CallbackQueryHandler)
+                          ConversationHandler)
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
