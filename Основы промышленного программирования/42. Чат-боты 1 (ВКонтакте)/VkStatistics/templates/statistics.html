@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="text-center text-primary text-opacity-75">Activities</h1>
+<table class="table table-primary table-bordered border-secondary">
+    <tbody>
+        {% for label, cnt in activities.items() %}
+            <tr>
+                <th scope="row" class="table-active">{{ label }}</th>
+                <td>{{ cnt }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h1 class="text-center text-success text-opacity-75">Ages</h1>
+<table class="table table-success table-bordered border-secondary">
+    <tbody>
+        {% for label, cnt in ages.items() %}
+            <tr>
+                <th scope="row" class="table-active">{{ label }}</th>
+                <td>{{ cnt }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h1 class="text-center text-danger text-opacity-75">Cities</h1>
+<table class="table table-danger table-bordered border-secondary mx-auto w-75">
+    <tbody>
+        {% for city in cities %}
+            <tr>
+                <td>{{ city }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
