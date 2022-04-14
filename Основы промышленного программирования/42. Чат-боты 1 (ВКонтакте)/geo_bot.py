@@ -2,10 +2,13 @@ import logging
 import os
 import random
 from io import BytesIO
+from collections import defaultdict
+import json
 
 import requests
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+from vk_api.keyboard import VkKeyboard
 from vk_api import VkUpload
 
 TOKEN = os.getenv("TOKEN")
@@ -17,7 +20,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-datastore = {}  # user_id: 1/0 (новое сообщение или нет)
+# user_id: {"user_activated": 0, "keyboard_activated": 0, "tponym": toponym}
+datastore = defaultdict(dict)
 
 
 def get_geocode_result(geocode_data, **params):
@@ -88,27 +92,45 @@ def handle_message(vk, event):
     logger.info('Для меня от: %s', user_id)
     text = event.obj.message['text']
     logger.info('Текст: %s', text)
-    if not datastore.get(user_id):
-        datastore[user_id] = 1
+    if not datastore[user_id].get("user_activated"):
+        datastore[user_id]["user_activated"] = 1
+        datastore[user_id]["keyboard_activated"] = 0
         msg = "Скажити название местности, я покажу это на карте."
         vk.messages.send(user_id=user_id,
                          message=msg,
                          random_id=random.randint(0, 2 ** 64))
         return
     geocode_result = get_geocode_result(text)
-    try:
-        toponym = get_toponym(geocode_result)
-    except ValueError:
-        logger.error("not found")
-        msg = "Ничего не найдено. Скорее всего запрос набран с ошибкой"
+    if not datastore[user_id]["keyboard_activated"]:
+        try:
+            toponym = get_toponym(geocode_result)
+            datastore[user_id]["toponym"] = toponym
+        except ValueError:
+            logger.error("not found")
+            msg = "Ничего не найдено. Скорее всего запрос набран с ошибкой"
+            vk.messages.send(user_id=user_id,
+                             message=msg,
+                             random_id=random.randint(0, 2 ** 64))
+            return
+        datastore[user_id]["keyboard_activated"] = 1
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_button("Схема", payload={"map_type": "map"})
+        keyboard.add_button("Спутник", payload={"map_type": "sat"})
+        keyboard.add_button("Гибрид", payload={"map_type": "sat,skl"})
         vk.messages.send(user_id=user_id,
-                         message=msg,
+                         message="Выберете тип карты:",
+                         keyboard=keyboard.get_keyboard(),
                          random_id=random.randint(0, 2 ** 64))
         return
+    datastore[user_id]["keyboard_activated"] = 0
+    toponym = datastore[user_id]["toponym"]
     bbox = get_address_bbox(toponym)
     coord = get_ll_from_geocode_response(toponym)
     pointer = f"{coord[0]},{coord[1]},pm2rdl"
-    url = get_static_map_url(bbox=bbox, pt=pointer)
+    kb_payload = event.message.payload
+    kb_payload = json.loads(kb_payload)
+    map_type = kb_payload["map_type"]
+    url = get_static_map_url(bbox=bbox, pt=pointer, l=map_type)
     static_map = requests.get(url).content
     geocode_address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
     logger.info("found image")
@@ -136,6 +158,7 @@ def main():
 
         if event.type == VkBotEventType.MESSAGE_NEW:
             handle_message(vk, event)
+        print(event)
 
 
 if __name__ == '__main__':
