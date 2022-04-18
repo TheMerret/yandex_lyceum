@@ -15,3 +15,4 @@ alembic==1.7.6
 flask-restful=0.3.9
 python-telegram-bot==13.11
 discord.py==1.7.3
+gevent==21.12.0
