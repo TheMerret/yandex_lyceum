@@ -55,6 +55,7 @@ def translate_api(text, lang_from="ru", lang_to="en"):
 def translate(update: Update, context: CallbackContext):
     text = update.message.text
     frm, to = context.user_data["frm"], context.user_data["to"]
+    print(frm, to)
     translation_keyboard = [[f"/change {to} {frm}"]]
     reply_keyboard = ReplyKeyboardMarkup(translation_keyboard)
     try:
@@ -71,8 +72,11 @@ def change_direction(update: Update, context: CallbackContext):
         frm, to = context.args
         context.user_data["frm"] = frm
         context.user_data["to"] = to
+        translation_keyboard = [[f"/change {to} {frm}"]]
+        reply_keyboard = ReplyKeyboardMarkup(translation_keyboard)
         context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text=f'Теперь направление: {frm} -> {to}')
+                                 text=f'Теперь направление: {frm} -> {to}',
+                                 reply_markup=reply_keyboard)
     except ValueError:
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text=f"Использование: /change en ru")
