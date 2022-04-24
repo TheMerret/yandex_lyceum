@@ -83,13 +83,9 @@ class TranslatorCog(commands.Cog):
                        f" and text for translate")
 
     @commands.command(name="text")
-    async def translate(self, ctx, text):
+    async def translate(self, ctx, *text):
         """with text will translate this text according to lang pair"""
-        TRANSLATE_PATTER = re.compile(r"(\w+)")
-        match = TRANSLATE_PATTER.fullmatch(text)
-        if match is None:
-            await ctx.send(f"Using:\n{self.bot.command_prefix}{self.translate.name} text")
-            return
+        text = " ".join(text)
         try:
             translation = await make_translation(text, *self.lang_pair)
         except LangPairMissMatch:
