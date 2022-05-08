@@ -18,4 +18,3 @@ vk-api==11.9.8
 discord.py==1.7.3
 pymorphy2==0.9.1
 gevent==21.12.0
-git+https://github.com/adamakalshchikov/vk_api.git
